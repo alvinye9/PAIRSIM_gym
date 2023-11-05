@@ -1,0 +1,14 @@
+wheel_odometer_integrator:
+  ros__parameters:
+    spinning_detection_threshold: 0.3
+    base_frame: 'base_link'
+    vehicle:
+      # geometry
+      track_width: 1.5813
+      wheel_base: 2.9718
+      steering:
+        # for 8-tooth pinon
+        gear_ratio: 15.015
+      odom_speed_covariance: 1.0
+      odom_position_covariance: 1.0
+      steering_angle_covariance: 0.1
