@@ -25,6 +25,7 @@ endif()
 
 
 install(PROGRAMS scripts/MPC.py
+    scripts/long_mpc.py
     DESTINATION lib/${PROJECT_NAME}
 )
 

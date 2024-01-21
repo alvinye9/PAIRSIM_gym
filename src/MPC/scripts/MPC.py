@@ -54,10 +54,10 @@ class MPC(Node):
 
 
         self.declare_parameter('prediction_ts', value=0.2)
-        self.declare_parameter('lateral_error_weight', value=1.0)
-        self.declare_parameter('lateral_error_velocity_weight', value=0.1)
-        self.declare_parameter('R_weight', value=1.5)
-        self.declare_parameter('horizon_length', value=15)
+        self.declare_parameter('lateral_error_weight', value=20.0)
+        self.declare_parameter('lateral_error_velocity_weight', value=3.0)
+        self.declare_parameter('R_weight', value=0.5)
+        self.declare_parameter('horizon_length', value=12)
 
         self.publisher_steer_cmd = self.create_publisher(Float32, '/joystick/steering_cmd', 10)
         self.path_pub = self.create_publisher(Path, '/mpc_debug_path', 10)
@@ -113,7 +113,7 @@ class MPC(Node):
         Q[1::2] *= self.lateral_error_velocity_weight
 
         R = self.R * self.R_weight
-        self.matrix = -np.linalg.inv((M.T @ Q @ M + R)) @ M.T @ Q
+        self.matrix = -np.linalg.inv((M.T @ Q @ M + R)) #@ M.T @ Q
     
     def update_params(self):
         lateral_error_weight = self.get_parameter('lateral_error_weight').value
@@ -192,7 +192,8 @@ class MPC(Node):
         M = self.M
         Q = self.Q
         R2 = self.R2
-        u = self.matrix @ (y + L @ z)
+        #u = self.matrix @ (y + L @ z)
+        u = self.matrix @ (self.M.T @ self.Q @ (y + L @ z) + self.R @ self.eta)
 
         return u
 
@@ -277,9 +278,7 @@ class MPC(Node):
         if len(self.current_vs) == 0:
             return
 
-        v = self.current_v
-        if v < 5:
-            v = self.current_vs[0]
+        v = 0.5 * (self.current_v + self.current_vs[0])
         zs = np.zeros(self.horizon*2)
         qs = [[0, 0, 0]]
 
@@ -322,14 +321,14 @@ class MPC(Node):
         self.eta += self.optimize(self.ys, dz)
         #print("Eta: ", self.eta)
         #self.eta[0] += prev_u
-        self.eta = np.clip(self.eta, -10, 10)
-        w = np.clip(self.eta[0] / (self.current_v * np.cos(init_e_h)), -6.28, 6.28)
+        self.eta = np.clip(self.eta, -100, 100)
+        w = np.clip(self.eta[0] / (self.current_v * np.cos(init_e_h)), -100.0, 100.0)
 
         msg = Float32()
         msg.data = w
         self.desired_w_pub.publish(msg)
 
-        self.steer_angle = np.rad2deg(3.4 * w / (max(self.current_vs[0], 1)))
+        self.steer_angle = np.rad2deg(2.9718 * w / (max(self.current_vs[0], 1)))
         msg = Float32()
         msg.data = self.steer_angle
         self.publisher_steer_cmd.publish(msg)
