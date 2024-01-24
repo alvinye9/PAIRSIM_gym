@@ -1,0 +1,12 @@
+# Ignore build artifacts
+build/
+bin/
+lib/
+*.o
+*.a
+*.pyc
+
+# Ignore install folders
+install/
+build/
+log/
