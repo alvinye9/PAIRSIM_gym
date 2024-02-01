@@ -31,10 +31,37 @@ class VelocitySubscriber(Node):
         self.subscription  # prevent unused variable warning
         timer_period = 0.01
         self.timer = self.create_timer(timer_period, self.simple_mpc)
-
+        param_timer_period = 1.0
+        self.param_timer = self.create_timer(param_timer_period, self.update_parameters)
         self.velocity_array = []
         self.curv_array = []
         self.curr_speed = 0
+        self.declare_parameter('N', value=50)
+        self.declare_parameter('dt', value=0.1)
+        self.declare_parameter('G', value=2.0)
+        self.declare_parameter('R', value=10.0)
+        self.declare_parameter('Q', value=0.5)
+        self.N = self.get_parameter('N').value
+        self.dt = self.get_parameter('dt').value
+        self.G = self.get_parameter('G').value
+        self.R = self.get_parameter('R').value
+        self.Q = self.get_parameter('Q').value
+
+    def update_parameters(self):
+        N = self.get_parameter('N').value
+        dt = self.get_parameter('dt').value
+        G = self.get_parameter('G').value
+        R = self.get_parameter('R').value
+        Q = self.get_parameter('Q').value
+
+        if (self.N != N or self.dt != dt or self.G != G or self.R != R or self.Q != Q):
+            self.N = N
+            self.dt = dt
+            self.G = G
+            self.R = R
+            self.Q = Q
+    
+
 
     def listener_callback(self, msg):
         self.velocity_array = msg.data  # This is a list of float32
@@ -79,7 +106,13 @@ class VelocitySubscriber(Node):
 
         return v_temporal, abs(curv_temporal)
 
-    def simple_mpc(self, N=50, dt=0.1, G=2.0, R=10.0, Q=0.5):
+    def simple_mpc(self):
+        N = self.N
+        dt = self.dt
+        G = self.G
+        R = self.R
+        Q = self.Q
+        
         # N: Number of timesteps in the prediction horizon
         # dt: Time between each timestep
         # R: Weight on the acceleration squared term in the cost function

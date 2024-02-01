@@ -303,7 +303,7 @@ class MPC(Node):
             yaw = qs[i][-1]
             w = self.eta[i] / (v * np.cos(e_h))
             #print("w:", w)
-            qs.append(self.rk4_step(v, w, qs[-1]))
+            qs.append(self.rk4_step(v, 0.7*w, qs[-1]))
             qs[-1][2] = self.normalize_angle(qs[-1][2])
             pose = PoseStamped()
             pose.pose.position.x = qs[-1][0]
