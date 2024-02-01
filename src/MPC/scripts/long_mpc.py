@@ -38,9 +38,9 @@ class VelocitySubscriber(Node):
         self.curr_speed = 0
         self.declare_parameter('N', value=50)
         self.declare_parameter('dt', value=0.1)
-        self.declare_parameter('G', value=2.0)
-        self.declare_parameter('R', value=10.0)
-        self.declare_parameter('Q', value=0.5)
+        self.declare_parameter('G', value=10.0)
+        self.declare_parameter('R', value=5.0)
+        self.declare_parameter('Q', value=0.2)
         self.N = self.get_parameter('N').value
         self.dt = self.get_parameter('dt').value
         self.G = self.get_parameter('G').value

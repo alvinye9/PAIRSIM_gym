@@ -124,7 +124,7 @@ void AccelerationInterface::declareParams()
     this->declare_parameter<float>("max_msg_timeout_s", 0.5);
     this->declare_parameter<float>("Min_shift_delay_s", 2.0);
     this->declare_parameter<float>("Shift_timeout_s", 0.7);
-    this->declare_parameter<float>("Engine_brake_gain", 1.0);
+    this->declare_parameter<float>("Engine_brake_gain", 0.5);
     
     //gearset parameters
     this->declare_parameter<float>("gearset.gear1_lb_rpm", 0.0);
