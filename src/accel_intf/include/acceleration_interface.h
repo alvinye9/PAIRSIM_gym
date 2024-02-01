@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'acceleration_interface'.
 //
-// Model version                  : 13.49
+// Model version                  : 13.51
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Sat Jan 20 18:20:14 2024
+// C/C++ source code generated on : Thu Jan 25 16:23:51 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Intel->x86-64 (Linux 64)
@@ -183,6 +183,9 @@ class acceleration_interface final
 
     real_T Efficiency_diff_re;         // Variable: Efficiency_diff_re
                                           //  Referenced by: '<S10>/Constant3'
+
+    real_T Engine_brake_gain;          // Variable: Engine_brake_gain
+                                          //  Referenced by: '<S12>/Constant2'
 
     real_T M_vehicle_kg;               // Variable: M_vehicle_kg
                                           //  Referenced by: '<S4>/Constant2'

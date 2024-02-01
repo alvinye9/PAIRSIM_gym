@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'acceleration_interface'.
 //
-// Model version                  : 13.49
+// Model version                  : 13.51
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Sat Jan 20 18:20:14 2024
+// C/C++ source code generated on : Thu Jan 25 16:23:51 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Intel->x86-64 (Linux 64)
@@ -414,9 +414,11 @@ void acceleration_interface::step()
   if (shift_needed) {
     // Switch: '<S12>/Switch' incorporates:
     //   Constant: '<S12>/Constant'
+    //   Constant: '<S12>/Constant2'
     //   DataTypeConversion: '<Root>/Data Type Conversion'
     //   Inport: '<Root>/curr_velocity_mps'
     //   Product: '<S10>/Product'
+    //   Product: '<S12>/Product'
     //   UnitDelay: '<S17>/UD'
     //
     //  Block description for '<S17>/UD':
@@ -424,7 +426,8 @@ void acceleration_interface::step()
     //   Store in Global RAM
 
     if (rtU.curr_velocity_mps > rtP.Switch_Threshold) {
-      rtb_MaxTorque *= rtDWork.UD_DSTATE;
+      rtb_MaxTorque = (rtDWork.UD_DSTATE * rtb_MaxTorque) *
+        rtP.Engine_brake_gain;
     } else {
       rtb_MaxTorque = rtP.Constant_Value;
     }

@@ -124,6 +124,7 @@ void AccelerationInterface::declareParams()
     this->declare_parameter<float>("max_msg_timeout_s", 0.5);
     this->declare_parameter<float>("Min_shift_delay_s", 2.0);
     this->declare_parameter<float>("Shift_timeout_s", 0.7);
+    this->declare_parameter<float>("Engine_brake_gain", 1.0);
     
     //gearset parameters
     this->declare_parameter<float>("gearset.gear1_lb_rpm", 0.0);
@@ -146,6 +147,7 @@ void AccelerationInterface::declareParams()
     this->declare_parameter<float>("max_decel_mps2", -6.0);
     this->declare_parameter<bool>("mute", true);
     this->declare_parameter<bool>("auto_enable", false);
+ 
 }
 
 void AccelerationInterface::updateParams() 
@@ -180,6 +182,8 @@ void AccelerationInterface::updateParams()
         rtObject_.rtP.Gearset.n_lb_rpm_6 = this->get_parameter("gearset.gear6_lb_rpm").as_double();
         rtObject_.rtP.Gearset.n_ub_rpm_6 = this->get_parameter("gearset.gear6_ub_rpm").as_double();
 
+        
+
         first_call = false;
     }
 
@@ -187,6 +191,7 @@ void AccelerationInterface::updateParams()
     rtObject_.rtP.Brake_max_kpa = this->get_parameter("max_brake_kpa").as_double();
     rtObject_.rtP.Acc_max_ms2 = this->get_parameter("max_accel_mps2").as_double();
     rtObject_.rtP.Acc_min_ms2 = this->get_parameter("max_decel_mps2").as_double();
+    rtObject_.rtP.Engine_brake_gain = this->get_parameter("Engine_brake_gain").as_double();
 }
 
 

@@ -31,6 +31,9 @@ AccelerationInterface:
     Coef_drag: 0.3         # Found assuming 192MPH is max aero limited speed
     Roh_air: 1.22
 
+    #Engine brake gain
+    Engine_brake_gain: 0.5 # Engine brake gain
+
     # Braking parameters
     A_caliper_mm2: 2000.0  # Total area of caliper pistons per wheel
     R_brake_lever_m: 0.134 # Mean radius of brake lever

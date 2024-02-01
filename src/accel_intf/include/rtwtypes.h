@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'acceleration_interface'.
 //
-// Model version                  : 13.49
+// Model version                  : 13.51
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Sat Jan 20 18:20:14 2024
+// C/C++ source code generated on : Thu Jan 25 16:23:51 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Intel->x86-64 (Linux 64)
