@@ -51,13 +51,21 @@ class MPC(Node):
         )
 
 
-
-
+        self.declare_parameter('Iz', value=1000.0) # moment of inertia kg*m^2
+        self.declare_parameter('l_F', value=1.7) #m
+        self.declare_parameter('l_R', value=1.2)
+        self.declare_parameter('m', value=787.0) #kg
         self.declare_parameter('prediction_ts', value=0.2)
         self.declare_parameter('lateral_error_weight', value=20.0)
         self.declare_parameter('lateral_error_velocity_weight', value=3.0)
         self.declare_parameter('R_weight', value=0.5)
-        self.declare_parameter('horizon_length', value=12)
+        self.declare_parameter('horizon_length', value=15)
+        self.declare_parameter('D_f', value=0.9)  # pacejka coeff
+        self.declare_parameter('D_r', value=1.0)
+        self.declare_parameter('B_f', value=13.0)
+        self.declare_parameter('B_r', value=11.0)
+        self.declare_parameter('C_f', value=1.4)
+        self.declare_parameter('C_r', value=1.4)
 
         self.publisher_steer_cmd = self.create_publisher(Float32, '/joystick/steering_cmd', 10)
         self.path_pub = self.create_publisher(Path, '/mpc_debug_path', 10)
@@ -81,14 +89,25 @@ class MPC(Node):
         self.lateral_error_weight = self.get_parameter('lateral_error_weight').value
         self.lateral_error_velocity_weight = self.get_parameter('lateral_error_velocity_weight').value
         self.R_weight = self.get_parameter('R_weight').value
+        self.l_F = self.get_parameter('l_F').value
+        self.l_R = self.get_parameter('l_R').value
+        self.m = self.get_parameter('m').value
+        self.D_f = self.get_parameter('D_f').value
+        self.D_r = self.get_parameter('D_r').value
+        self.B_f = self.get_parameter('B_f').value
+        self.B_r = self.get_parameter('B_r').value
+        self.C_f = self.get_parameter('C_f').value
+        self.C_r = self.get_parameter('C_r').value
+        self.Iz = self.get_parameter('Iz').value
         
 
         self.current_v = 0
+        self.current_v_lat = 0
         self.current_yaw_rate = 0
         self.spin_mon = 0
         self.current_vs = []
         self.poses = []
-        self.steer_angle = 0
+        self.current_steer_angle = 0
 
         self.construct_matrix()
         self.ys = np.zeros(self.horizon*2)
@@ -98,6 +117,7 @@ class MPC(Node):
         self.states = []
         self.inputs = []
         self.vels = []
+        
         self.yaw_errors = []
 
     def construct_matrix(self):
@@ -160,6 +180,47 @@ class MPC(Node):
 
         return L, M
     
+    def cal_frt_slip_agl(self, v_long, v_lat, w,steer_angle):
+        
+        alpha_f = np.arctan((v_lat + self.l_F * w) / v_long) - steer_angle
+        alpha_r = np.arctan((v_lat - self.l_R * w) / v_long)
+        return alpha_f, alpha_r
+    
+    def cal_lat_force(self, v_long, v_lat, w,steer_angle):
+        alpha_f, alpha_r = self.cal_frt_slip_agl(v_long, v_lat, w, steer_angle)
+        F_Nf = self.m * 9.8 * self.l_F / (self.l_F + self.l_R) # Normal force on front wheels
+        F_Nr = self.m * 9.8 * self.l_R / (self.l_F + self.l_R) # Normal force on rear wheels
+        
+        F_yf = F_Nf * self.D_f * np.sin(self.C_f * np.arctan(self.B_f * alpha_f))
+        F_yr = F_Nr * self.D_r * np.sin(self.C_r * np.arctan(self.B_r * alpha_r))
+        return F_yf, F_yr
+    
+    def cal_d_yawrate (self, F_yf,F_yr w,F_xf, steer_angle):
+        d_r = (1/self.Iz)* (self.l_F*(F_yf*np.cos(steer_angle)+ F_xf*np.sin(steer_angle)) - self.l_R*F_yr)
+        b = steer_angle
+        
+        return d_r
+        
+    def bicycle_model(self, v_long,v_lat, w, state, steer_angle):
+        dt = self.ts
+        x, y, yaw = state
+        print("state: ", state)
+        F_yf, F_yr = self.cal_lat_force(v_long, v_lat,w,steer_angle)
+       
+        dv_lat = (1/self.m)*(F_yr + F_yf*np.cos(steer_angle)-self.m * v_long * w)
+        
+        dx = v_long * np.cos(yaw) - v_lat * np.sin(yaw)
+        print("dx: ", dx)
+        dy = v_long * np.sin(yaw) + v_lat * np.cos(yaw)
+        print("dy: ", dy)
+        dyaw = w
+        print("dyaw: ", dyaw)
+        new_state = state + np.array([dx, dy, dyaw])*dt
+        print("new_state: ", new_state)
+        v_lat = v_lat + dv_lat * dt
+        return new_state, v_lat
+    
+    
     def rk4_step(self, v, w, state):
         dt = self.ts
         def f(state, v, w):
@@ -192,14 +253,6 @@ class MPC(Node):
         M = self.M
         Q = self.Q
         R2 = self.R2
-        print("M.T shape:", self.M.T.shape)
-        print("Q shape:", self.Q.shape)
-        print("y shape:", y.shape)
-        print("L shape:", L.shape)
-        print("z shape:", z.shape)
-        print("R shape:", self.R.shape)
-        print("eta shape:", self.eta.shape)
-        print("matrix shape:", self.matrix.shape)
         #u = self.matrix @ (y + L @ z)
         u = self.matrix @ (self.M.T @ self.Q @ (y + L @ z) + self.R @ self.eta)
 
@@ -210,7 +263,9 @@ class MPC(Node):
 
     def speed_cb(self, msg: Float32):
         self.current_v = msg.data
-    
+        self.current_v_lat = self.current_v * np.sin(np.arctan(np.tan(np.deg2rad(self.current_steer_angle)) * self.l_F / self.l_R))
+        print("lat_v", self.current_v_lat)
+        print("long_v", self.current_v)
     def wheel_odom_cb(self, msg):
         self.current_yaw_rate = msg.twist.twist.angular.z
 
@@ -271,7 +326,9 @@ class MPC(Node):
         if e_y > 2.0:
             #print(e_y, e_theta)
             pass
-
+        print("e_y: ", e_y)
+        print("e_theta: ", e_theta)
+        
         return e_y, e_theta, self.current_vs[closest_idx]
     
     def save_data(self):
@@ -279,7 +336,78 @@ class MPC(Node):
         self.vels.append([self.current_v, self.current_yaw_rate])
         self.inputs.append(self.eta[0])
         self.yaw_errors.append(self.spin_mon)
-
+        
+        
+    def update(self):
+        if self.kdtree is None:
+            return
+        if len(self.current_vs) == 0:
+            return
+        v_long = 0.5 * (self.current_v + self.current_vs[0])
+        v_lat = self.current_v_lat
+        v = np.sqrt(v_long**2 + v_lat**2)
+        steer_angle = np.deg2rad(self.current_steer_angle)
+        zs = np.zeros(self.horizon*2)
+        qs = [[0, 0, 0]]
+        
+        e_l, init_e_h, _ = self.get_error(0, 0, 0)
+        init_e_h = init_e_h + self.normalize_angle(np.arctan(v_lat / v_long))
+        e_h = init_e_h
+        y_0_l = e_l
+        y_0_ldot = v * np.sin(e_h)
+        dz = np.array([(y_0_l - self.ys[0]), (y_0_ldot - self.ys[1])])
+        self.ys[0] = e_l
+        self.ys[1] = y_0_ldot
+        
+        
+        path_msg = Path()
+        path_msg.header.frame_id = 'vehicle'
+        pose = PoseStamped()
+        pose.pose.position.x = 0.0
+        pose.pose.position.y = 0.0
+        path_msg.poses.append(pose)
+        for i in range(self.horizon-1):
+            print("i: ", i)
+            w = self.eta[i] / (v * np.cos(e_h))
+            print("w:", w)
+            new_state, v_lat = self.bicycle_model(v_long, v_lat, w, qs[-1], steer_angle)
+            # print("new_state: ", new_state)
+            
+            qs.append(new_state)
+            qs[-1][2] = self.normalize_angle(qs[-1][2])
+            pose = PoseStamped()
+            pose.pose.position.x = qs[-1][0]
+            pose.pose.position.y = qs[-1][1]
+            path_msg.poses.append(pose)
+            e_l, e_h, v_long = self.get_error(*qs[i+1])
+            w = np.clip(self.eta[i] / (v_long * np.cos(e_h)), -100.0, 100.0)
+            steer_angle = np.rad2deg(2.9718 * w / (max(v_long, 1)))
+            self.ys[i*2+2] = e_l
+            self.ys[i*2+3] = v * np.sin(e_h)
+            zs[i*2+2] = self.ys[i*2+2] - self.ys[(i-1)*2+2]
+            zs[i*2+3] = self.ys[i*2+3] - self.ys[(i-1)*2+3]
+        self.path_pub.publish(path_msg)
+        #print(self.eta)
+        #print(self.optimize(self.ys, dz))
+        self.eta += self.optimize(self.ys, dz)
+        #print("Eta: ", self.eta)
+        #self.eta[0] += prev_u
+        self.eta = np.clip(self.eta, -100, 100)
+        w = np.clip(self.eta[0] / (self.current_v * np.cos(init_e_h)), -100.0, 100.0)
+        
+        msg = Float32()
+        msg.data = w
+        self.desired_w_pub.publish(msg)
+        
+        self.current_steer_angle = np.rad2deg(2.9718 * w / (max(self.current_vs[0], 1)))
+        msg = Float32()
+        msg.data = self.current_steer_angle
+        self.publisher_steer_cmd.publish(msg)
+        
+            
+            
+        
+'''
     def update(self):
         if self.kdtree is None:
             return
@@ -311,7 +439,7 @@ class MPC(Node):
             yaw = qs[i][-1]
             w = self.eta[i] / (v * np.cos(e_h))
             #print("w:", w)
-            qs.append(self.rk4_step(v, 0.7*w, qs[-1]))
+            qs.append(self.rk4_step(v, w, qs[-1]))
             qs[-1][2] = self.normalize_angle(qs[-1][2])
             pose = PoseStamped()
             pose.pose.position.x = qs[-1][0]
@@ -326,9 +454,8 @@ class MPC(Node):
         self.path_pub.publish(path_msg)
         #print(self.eta)
         #print(self.optimize(self.ys, dz))
-        
         self.eta += self.optimize(self.ys, dz)
-        print("Eta: ", self.eta)
+        #print("Eta: ", self.eta)
         #self.eta[0] += prev_u
         self.eta = np.clip(self.eta, -100, 100)
         w = np.clip(self.eta[0] / (self.current_v * np.cos(init_e_h)), -100.0, 100.0)
@@ -341,7 +468,7 @@ class MPC(Node):
         msg = Float32()
         msg.data = self.steer_angle
         self.publisher_steer_cmd.publish(msg)
-
+'''
 
 
 
