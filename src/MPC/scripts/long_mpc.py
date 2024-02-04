@@ -28,6 +28,7 @@ class VelocitySubscriber(Node):
             10
         )
         self.accel_pub = self.create_publisher(Float32, '/control/desired_acceleration', 10)
+        self.future_acc_array_pub = self.create_publisher(Float32MultiArray, '/control/future_acc', 10)
         self.subscription  # prevent unused variable warning
         timer_period = 0.01
         self.timer = self.create_timer(timer_period, self.simple_mpc)
@@ -163,8 +164,12 @@ class VelocitySubscriber(Node):
         msg = Float32()
         msg.data = a_optimal[0]
         self.accel_pub.publish(msg)
-        
 
+        #convert to multiarray
+        a_optimal_msg = Float32MultiArray()
+        a_optimal_msg.data = a_optimal.astype(np.float32).tolist()
+        self.future_acc_array_pub.publish(a_optimal_msg)
+        
 
 def main(args=None):
     rclpy.init(args=args)
