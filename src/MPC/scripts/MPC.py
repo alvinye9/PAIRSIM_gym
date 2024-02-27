@@ -58,6 +58,7 @@ class MPC(Node):
         self.declare_parameter('lateral_error_velocity_weight', value=3.0)
         self.declare_parameter('R_weight', value=0.5)
         self.declare_parameter('horizon_length', value=12)
+   
 
         self.publisher_steer_cmd = self.create_publisher(Float32, '/joystick/steering_cmd', 10)
         self.path_pub = self.create_publisher(Path, '/mpc_debug_path', 10)
@@ -192,14 +193,14 @@ class MPC(Node):
         M = self.M
         Q = self.Q
         R2 = self.R2
-        print("M.T shape:", self.M.T.shape)
-        print("Q shape:", self.Q.shape)
-        print("y shape:", y.shape)
-        print("L shape:", L.shape)
-        print("z shape:", z.shape)
-        print("R shape:", self.R.shape)
-        print("eta shape:", self.eta.shape)
-        print("matrix shape:", self.matrix.shape)
+        # print("M.T shape:", self.M.T.shape)
+        # print("Q shape:", self.Q.shape)
+        # print("y shape:", y.shape)
+        # print("L shape:", L.shape)
+        # print("z shape:", z.shape)
+        # print("R shape:", self.R.shape)
+        # print("eta shape:", self.eta.shape)
+        # print("matrix shape:", self.matrix.shape)
         #u = self.matrix @ (y + L @ z)
         u = self.matrix @ (self.M.T @ self.Q @ (y + L @ z) + self.R @ self.eta)
 
@@ -328,7 +329,7 @@ class MPC(Node):
         #print(self.optimize(self.ys, dz))
         
         self.eta += self.optimize(self.ys, dz)
-        print("Eta: ", self.eta)
+        #print("Eta: ", self.eta)
         #self.eta[0] += prev_u
         self.eta = np.clip(self.eta, -100, 100)
         w = np.clip(self.eta[0] / (self.current_v * np.cos(init_e_h)), -100.0, 100.0)
