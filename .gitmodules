@@ -13,9 +13,9 @@
 [submodule "src/sim-msgs"]
 	path = src/sim-msgs
 	url = git@github.com:autonomalabs/sim-msgs.git
-[submodule "src/simulator"]
-	path = src/simulator
-	url = git@github.com:Purdue-AI-Racing/simulator.git
+# [submodule "src/simulator"]
+# 	path = src/simulator
+# 	url = git@github.com:Purdue-AI-Racing/simulator.git
 [submodule "vehicle_sim"]
 	path = vehicle_sim
 	url = git@github.com:Purdue-AI-Racing/vehicle_sim.git
