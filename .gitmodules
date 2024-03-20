@@ -1,15 +1,18 @@
 [submodule "src/autoware_auto_msgs"]
 	path = src/autoware_auto_msgs
 	url = https://gitlab.com/autowarefoundation/autoware.auto/autoware_auto_msgs.git
-[submodule "src/blackandgold_msgs"]
-	path = src/blackandgold_msgs
-	url = git@github.com:Purdue-AI-Racing/blackandgold_msgs.git
-[submodule "src/kin_control"]
-	path = src/kin_control
-	url = git@github.com:Purdue-AI-Racing/kin_control.git
-[submodule "src/long_control"]
-	path = src/long_control
-	url = git@github.com:Purdue-AI-Racing/long_control.git
+# [submodule "src/blackandgold_msgs"]
+# 	path = src/blackandgold_msgs
+# 	url = git@github.com:Purdue-AI-Racing/blackandgold_msgs.git
+# [submodule "src/kin_control"]
+# 	path = src/kin_control
+# 	url = git@github.com:Purdue-AI-Racing/kin_control.git
+# [submodule "src/long_control"]
+# 	path = src/long_control
+# 	url = git@github.com:Purdue-AI-Racing/long_control.git
+[submodule "src/sim-msgs"]
+	path = src/sim-msgs
+	url = git@github.com:autonomalabs/sim-msgs.git
 [submodule "src/simulator"]
 	path = src/simulator
 	url = git@github.com:Purdue-AI-Racing/simulator.git
