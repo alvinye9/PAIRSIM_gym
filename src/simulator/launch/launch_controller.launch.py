@@ -30,65 +30,6 @@ def generate_launch_description():
         ),
 
 
-        # Node(
-        #     package='long_control',
-        #     executable='long_control',
-        #     name='LongControlNode',
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', logger],
-        #     parameters=[
-        #         {'use_sim_time': use_sim_time},
-        #         {'mute': False},
-        #         long_config
-        #     ]
-        # ),
-        # Node(
-        #     package='kin_control',
-        #     executable='kin_control',
-        #     name='KinControlNode',
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', logger],
-        #     #remappings=[('/joystick/steering_cmd', '/joystick/kin_control_steering_cmd')],
-        #     parameters=[
-        #         {'use_sim_time': False},
-        #         {'mute': False},
-        #         kin_config,
-        #     ]
-        # ),
-
-        # Node(
-        #     package='MPC',
-        #     executable='MPC.py',
-        #     name='MPC_Node',
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', logger],
-        #     parameters=[
-        #         {'use_sim_time': use_sim_time},
-        #     ]
-        # ),
-
-        # Node(
-        #     package='MPC',
-        #     executable='long_mpc.py',
-        #     name='Long_MPC_Node',
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', logger],
-        #     parameters=[
-        #         {'use_sim_time': use_sim_time},
-        #     ]
-        # ),
-
-        # Node(
-        #     package='accel_intf',
-        #     executable='accel_intf',
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', logger],
-        #     parameters=[
-        #         {'use_sim_time': use_sim_time},
-        #         accel_config
-        #     ]
-        # ),
-
         Node(
             package='pure_pursuit',
             executable='pure_pursuit_node',

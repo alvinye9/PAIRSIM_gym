@@ -20,9 +20,16 @@ def generate_launch_description():
         )
     )
 
+    republisher = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory("simulator"), "launch", "launch_republisher.launch.py")
+        )
+    )
+
     launch_descr.extend([
         planner,
-        controller
+        controller,
+        republisher
     ])
 
     return LaunchDescription(launch_descr)
