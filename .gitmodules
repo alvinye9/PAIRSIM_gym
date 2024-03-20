@@ -1,6 +1,3 @@
-# [submodule "src/autoware_auto_msgs"]
-# 	path = src/autoware_auto_msgs
-# 	url = https://gitlab.com/autowarefoundation/autoware.auto/autoware_auto_msgs.git
 [submodule "src/sim-msgs"]
 	path = src/sim-msgs
 	url = git@github.com:autonomalabs/sim-msgs.git
