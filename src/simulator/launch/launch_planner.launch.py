@@ -13,7 +13,7 @@ def generate_launch_description():
         executable='transform_path.py',
         output='screen',
         parameters=[
-            {'csv_file': get_package_share_directory('simulator') + '/maps/raceline_traj_with_velocity_monza_edited.csv'},
+            {'csv_file': get_package_share_directory('simulator') + '/maps/Monza_raceline.csv'},
             {'use_sim_time': False}
         ]
     )

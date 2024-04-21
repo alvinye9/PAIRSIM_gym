@@ -7,7 +7,7 @@ from geometry_msgs.msg import PoseStamped, PointStamped, Point
 from std_msgs.msg import Float32, Float32MultiArray
 import tf2_ros
 import tf2_py
-from tf2_geometry_msgs import do_transform_point
+from tf2_geometry_msgs import do_transform_point, do_transform_pose_stamped
 import numpy as np
 from scipy.spatial import cKDTree
 import csv
@@ -28,7 +28,7 @@ class PathPublisher(Node):
         #self.global_path.header.frame_id = 'map'
         self.global_path.header.frame_id = 'map'
 
-        input_file = self.declare_parameter('csv_file', './src/simulator/maps/raceline_traj_with_velocity_monza_edited.csv').value
+        input_file = self.declare_parameter('csv_file', './src/simulator/maps/Monza_raceline.csv').value
         # Positions will be used to build KDTree
         self.positions = []
         self.velocities = []
@@ -141,10 +141,12 @@ class PathPublisher(Node):
 
         velocities = Float32MultiArray()
         curvatures = Float32MultiArray()
-
+        
+        transform = self.tf_buffer.lookup_transform('vehicle', 'map', rclpy.time.Time())
+        
         for i in range(idx, idx+100):
             i = i % len(self.global_path.poses)
-            pose = self.tf_buffer.transform(self.global_path.poses[i], 'vehicle')
+            pose = do_transform_pose_stamped(self.global_path.poses[i], transform)
             local_path.poses.append(pose)
             velocities.data.append(self.velocities[i]*self.vel_scalar)
             curvatures.data.append(self.curvatures[i])
